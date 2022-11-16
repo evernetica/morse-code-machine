@@ -14,7 +14,7 @@ const App: () => Node = () => {
   const [symbol, setSymbol] = useState('');
   const [string, setString] = useState('');
   const [opacity, setOpacity] = useState(1);
-  const acceptTimer = 20;
+  const acceptTimer = 120;
   let acceptInterval = useRef(null);
   useEffect(() => {
     SplashScreen.hide();
@@ -29,6 +29,7 @@ const App: () => Node = () => {
 
   const confirmInputHandler = () => {
     setOpacity(1);
+    console.log(Date.now() - ms);
     if (Date.now() - ms > acceptTimer) {
       setSymbol(prev => prev + '-');
       setMs(0);
@@ -44,7 +45,7 @@ const App: () => Node = () => {
           setString(prevState => prevState + decodeMorse(symbol));
           setSymbol('');
           clearInterval(acceptInterval.current);
-        }, acceptTimer * 30);
+        }, acceptTimer * 5);
       } else {
         setString(prevState => prevState + decodeMorse(symbol));
         setSymbol('');
@@ -55,7 +56,7 @@ const App: () => Node = () => {
         acceptInterval.current = setInterval(() => {
           setString(prevState => prevState + ' ');
           clearInterval(acceptInterval.current);
-        }, acceptTimer * 90);
+        }, acceptTimer * 10);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +90,7 @@ const App: () => Node = () => {
           borderColor={'#111'}
           borderRadius={'5px'}>
           <StyledScrollView flex={1} width={'100%'} height={'100%'}>
-            <TextArea>{string}</TextArea>
+            <TextArea>{string.toUpperCase()}</TextArea>
           </StyledScrollView>
         </Block>
         <TextArea fontSize={'14px'}>

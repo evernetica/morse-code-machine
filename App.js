@@ -25,8 +25,8 @@ const App: () => Node = () => {
   const [symbol, setSymbol] = useState('');
   const [string, setString] = useState('');
   const [opacity, setOpacity] = useState(1);
-  const acceptTimer = 200;
-  // const activityRow = useRef([]);
+  let acceptTimer = useRef(300);
+  const [activityRow, setActivityRow] = useState([]);
   let acceptInterval = useRef(null);
   useEffect(() => {
     beep.setVolume(1);
@@ -40,26 +40,23 @@ const App: () => Node = () => {
   const [ms, setMs] = useState(0);
 
   const onPressIn = () => {
-    // if (ms){
-    //   activityRow.current.push({time: Date.now() - ms, isPressed: false})
-    // }
-    beep.stop();
-    beep.play();
+    //beep.stop();
+    beep.play(() => beep.play());
     setOpacity(0.2);
     clearInterval(acceptInterval.current);
     setMs(Date.now());
   };
 
   const onPressOut = () => {
+    beep.stop();
     setOpacity(1);
-    // activityRow.current.push({time: Date.now() - ms, isPressed: true});
-    if (Date.now() - ms > acceptTimer) {
+    setActivityRow(prev => [...prev, {time: Date.now() - ms, isPressed: true}]);
+    if (Date.now() - ms > acceptTimer.current) {
       setSymbol(prev => prev + '-');
-      setMs(0);
     } else {
       setSymbol(prev => prev + '.');
-      setMs(0);
     }
+    setMs(Date.now());
   };
   useEffect(() => {
     if (symbol.length) {
@@ -68,7 +65,7 @@ const App: () => Node = () => {
           setString(prevState => prevState + decodeMorse(symbol));
           setSymbol('');
           clearInterval(acceptInterval.current);
-        }, acceptTimer * 6);
+        }, acceptTimer.current * 6);
       } else {
         setString(prevState => prevState + decodeMorse(symbol));
         setSymbol('');
@@ -79,7 +76,7 @@ const App: () => Node = () => {
         acceptInterval.current = setInterval(() => {
           setString(prevState => prevState + ' ');
           clearInterval(acceptInterval.current);
-        }, acceptTimer * 12);
+        }, acceptTimer.current * 12);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,6 +85,23 @@ const App: () => Node = () => {
   const clearText = () => {
     setString('');
   };
+
+  let maxSymbolLength = useRef(acceptTimer.current * 3);
+  useEffect(() => {
+    if (activityRow.length > 5) {
+      activityRow.forEach(element => {
+        if (element.isPressed) {
+          if (element.time > 600 && element.time !== maxSymbolLength.current) {
+            maxSymbolLength.current = element.time;
+          }
+        }
+      });
+      if (acceptTimer.current > 150) {
+        acceptTimer.current = maxSymbolLength.current / 3;
+      }
+      setActivityRow([]);
+    }
+  }, [activityRow]);
 
   const showAnimation = () => {
     return;

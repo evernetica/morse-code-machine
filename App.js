@@ -10,26 +10,49 @@ import {
 } from './src/components/index';
 import {decodeMorse} from './src/helpers/morseDecoder';
 
+const Sound = require('react-native-sound');
+
+Sound.setCategory('Playback');
+
+const beep = new Sound('beep.mp3', Sound.MAIN_BUNDLE, error => {
+  if (error) {
+    console.log('failed to load the sound', error);
+    return;
+  }
+});
+
 const App: () => Node = () => {
   const [symbol, setSymbol] = useState('');
   const [string, setString] = useState('');
   const [opacity, setOpacity] = useState(1);
-  const acceptTimer = 120;
+  const acceptTimer = 200;
+  // const activityRow = useRef([]);
   let acceptInterval = useRef(null);
+  useEffect(() => {
+    beep.setVolume(1);
+    return () => {
+      beep.release();
+    };
+  }, []);
   useEffect(() => {
     SplashScreen.hide();
   }, []);
   const [ms, setMs] = useState(0);
 
-  const morseDecoderHandler = () => {
+  const onPressIn = () => {
+    // if (ms){
+    //   activityRow.current.push({time: Date.now() - ms, isPressed: false})
+    // }
+    beep.stop();
+    beep.play();
     setOpacity(0.2);
     clearInterval(acceptInterval.current);
     setMs(Date.now());
   };
 
-  const confirmInputHandler = () => {
+  const onPressOut = () => {
     setOpacity(1);
-    console.log(Date.now() - ms);
+    // activityRow.current.push({time: Date.now() - ms, isPressed: true});
     if (Date.now() - ms > acceptTimer) {
       setSymbol(prev => prev + '-');
       setMs(0);
@@ -45,7 +68,7 @@ const App: () => Node = () => {
           setString(prevState => prevState + decodeMorse(symbol));
           setSymbol('');
           clearInterval(acceptInterval.current);
-        }, acceptTimer * 5);
+        }, acceptTimer * 6);
       } else {
         setString(prevState => prevState + decodeMorse(symbol));
         setSymbol('');
@@ -56,7 +79,7 @@ const App: () => Node = () => {
         acceptInterval.current = setInterval(() => {
           setString(prevState => prevState + ' ');
           clearInterval(acceptInterval.current);
-        }, acceptTimer * 10);
+        }, acceptTimer * 12);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,8 +164,8 @@ const App: () => Node = () => {
           justifyContent={'space-around'}
           width={'100%'}>
           <Button
-            onPressIn={morseDecoderHandler}
-            onPressOut={confirmInputHandler}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
             onPress={showAnimation}
             opacity={opacity}
             mt={'10px'}>

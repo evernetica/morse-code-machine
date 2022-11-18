@@ -40,7 +40,6 @@ const App: () => Node = () => {
   const [ms, setMs] = useState(0);
 
   const onPressIn = () => {
-    //beep.stop();
     beep.play(() => beep.play());
     setOpacity(0.2);
     clearInterval(acceptInterval.current);
